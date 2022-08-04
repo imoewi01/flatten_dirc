@@ -733,6 +733,9 @@ int main(int argc, char** argv){
   Float_t inChargedHypo__Lk_DIRC[MAXTRACKS] = {};
   Float_t inChargedHypo__Lp_DIRC[MAXTRACKS] = {};
   Int_t   inChargedHypo__NumPhotons_DIRC[MAXTRACKS] = {};
+  Float_t inChargedHypo__x_DIRC[MAXTRACKS] = {};
+  Float_t inChargedHypo__y_DIRC[MAXTRACKS] = {};
+  Float_t inChargedHypo__thetac_DIRC[MAXTRACKS] = {};
 
   Float_t inChargedHypo__E_BCAL[MAXTRACKS] = {};
   Float_t inChargedHypo__E_FCAL[MAXTRACKS] = {};
@@ -740,6 +743,7 @@ int main(int argc, char** argv){
 
 
   if (gUseParticles && gUseDIRC){
+    // this one is a test case to see if the DIRC info is included in the tree
     int flag = gInTree->SetBranchAddress("ChargedHypo__Lpi_DIRC",inChargedHypo__Lpi_DIRC);
     if(flag!=0){
       cout << "SetBranchAddress for DIRC returned " << flag << endl;
@@ -751,6 +755,9 @@ int main(int argc, char** argv){
       gInTree->SetBranchAddress("ChargedHypo__Lk_DIRC",inChargedHypo__Lk_DIRC);
       gInTree->SetBranchAddress("ChargedHypo__Lp_DIRC",inChargedHypo__Lp_DIRC);
       gInTree->SetBranchAddress("ChargedHypo__NumPhotons_DIRC",inChargedHypo__NumPhotons_DIRC);
+      gInTree->SetBranchAddress("ChargedHypo__ExtrapolatedX_DIRC",inChargedHypo__x_DIRC);
+      gInTree->SetBranchAddress("ChargedHypo__ExtrapolatedY_DIRC",inChargedHypo__y_DIRC);
+      gInTree->SetBranchAddress("ChargedHypo__ThetaC_DIRC",inChargedHypo__thetac_DIRC);
     }
   }
   if(gUseParticles){
@@ -956,8 +963,11 @@ int main(int argc, char** argv){
   double outLkDIRC[MAXPARTICLES]={};
   double outLeleDIRC[MAXPARTICLES]={};
   Int_t outNumPhotonsDIRC[MAXPARTICLES]={};
-  //double outShE9E25[MAXPARTICLES]={};
+  double outXDIRC[MAXPARTICLES]={};
+  double outYDIRC[MAXPARTICLES]={};
+  double outThetaCDIRC[MAXPARTICLES]={};
   double outTkEP[MAXPARTICLES]={};
+  double outEpre_BCAL[MAXPARTICLES];
   {
     for (unsigned int im = 0; im < gOrderedParticleNames.size(); im++){
     for (unsigned int id = 0; id < gOrderedParticleNames[im].size(); id++){
@@ -980,6 +990,7 @@ int main(int argc, char** argv){
           TString vTkChi2("TkChi2P"); vTkChi2 += fsIndex; gOutTree->Branch(vTkChi2,&outTkChi2[pIndex]);
           // add E/p for charged tracks
           TString vTkEP("TkEPP"); vTkEP+=fsIndex; gOutTree->Branch(vTkEP, &outTkEP[pIndex]);
+          TString vTkpre("TkEpreP"); vTkpre+=fsIndex; gOutTree->Branch(vTkpre, &outEpre_BCAL[pIndex]);
         }
         if (gAddPID && GlueXParticleClass(name) == "Charged"){
           // fsIndex is appended to the variable name
@@ -1000,6 +1011,9 @@ int main(int argc, char** argv){
           TString vLkDIRC("TkLkDIRCP");         vLkDIRC     += fsIndex; gOutTree->Branch(vLkDIRC,    &outLkDIRC[pIndex]);
           TString vLeleDIRC("TkLeleDIRCP");        vLeleDIRC   += fsIndex; gOutTree->Branch(vLeleDIRC,  &outLeleDIRC[pIndex]);
           TString vNumPhotonsDIRC("TkLpiDIRCP"); vNumPhotonsDIRC += fsIndex; gOutTree->Branch(vNumPhotonsDIRC,   &outNumPhotonsDIRC[pIndex]);
+          TString vXDIRC("TkXDIRCP"); vXDIRC+=fsIndex; gOutTree->Branch(vXDIRC, &outXDIRC[pIndex]);
+          TString vYDIRC("TkYDIRCP"); vYDIRC+=fsIndex; gOutTree->Branch(vYDIRC, &outYDIRC[pIndex]);
+          TString vThetaDIRC("TkThetaCDIRCP"); vThetaDIRC+=fsIndex; gOutTree->Branch(vThetaDIRC,&outThetaCDIRC[pIndex]);
         }
 
 
@@ -1295,6 +1309,9 @@ int main(int argc, char** argv){
               outPy[pIndex] = p4->Py();
               outPz[pIndex] = p4->Pz();
               outEn[pIndex] = p4->E();
+              // J/psi paper uses momentum from kinFit
+              outTkEP[pIndex] = (inChargedHypo__E_BCAL[(inChargedIndex[pIndex][ic])]+inChargedHypo__E_FCAL[(inChargedIndex[pIndex][ic])]+inChargedHypo__Epre_BCAL[(inChargedIndex[pIndex][ic])])/sqrt(pow(p4->Px(),2)+pow(p4->Py(),2)+pow(p4->Pz(),2));
+              outEpre_BCAL[pIndex] = inChargedHypo__Epre_BCAL[(inChargedIndex[pIndex][ic])];
           }
           if (gUseParticles){
             p4 = (TLorentzVector*)inChargedHypo__P4_Measured->At(inChargedIndex[pIndex][ic]);
@@ -1302,9 +1319,9 @@ int main(int argc, char** argv){
               outRPy[pIndex] = p4->Py();
               outRPz[pIndex] = p4->Pz();
               outREn[pIndex] = p4->E();
-              outTkEP[pIndex] = (inChargedHypo__E_BCAL[(inChargedIndex[pIndex][ic])]+inChargedHypo__E_FCAL[(inChargedIndex[pIndex][ic])]+inChargedHypo__Epre_BCAL[(inChargedIndex[pIndex][ic])])/sqrt(pow(p4->Px(),2)+pow(p4->Py(),2)+pow(p4->Pz(),2));
-            outTkNDF [pIndex] = inChargedHypo__NDF_Tracking  [(inChargedIndex[pIndex][ic])];
-            outTkChi2[pIndex] = inChargedHypo__ChiSq_Tracking[(inChargedIndex[pIndex][ic])];
+
+              outTkNDF [pIndex] = inChargedHypo__NDF_Tracking  [(inChargedIndex[pIndex][ic])];
+              outTkChi2[pIndex] = inChargedHypo__ChiSq_Tracking[(inChargedIndex[pIndex][ic])];
             if (gAddPID){
               outTkTOFBeta[pIndex] = inBeta_Timing[pIndex][ic];
               outTkTOFChi2[pIndex] = inChiSq_Timing[pIndex][ic];
@@ -1319,6 +1336,9 @@ int main(int argc, char** argv){
               outLpDIRC[pIndex]     = inChargedHypo__Lp_DIRC     [(inChargedIndex[pIndex][ic])];
               outLeleDIRC[pIndex]   = inChargedHypo__Lele_DIRC   [(inChargedIndex[pIndex][ic])];
               outNumPhotonsDIRC[pIndex]     = inChargedHypo__NumPhotons_DIRC[(inChargedIndex[pIndex][ic])];
+              outXDIRC[pIndex]      = inChargedHypo__x_DIRC[(inChargedIndex[pIndex][ic])];
+              outYDIRC[pIndex]      = inChargedHypo__y_DIRC[(inChargedIndex[pIndex][ic])];
+              outThetaCDIRC[pIndex] = inChargedHypo__thetac_DIRC[(inChargedIndex[pIndex][ic])];
             }
           }
           if (gUseMCParticles && outMCSignal > 0.1){
