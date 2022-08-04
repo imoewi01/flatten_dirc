@@ -1010,7 +1010,7 @@ int main(int argc, char** argv){
           TString vLpDIRC("TkLpDIRCP");          vLpDIRC     += fsIndex; gOutTree->Branch(vLpDIRC,    &outLpDIRC[pIndex]);
           TString vLkDIRC("TkLkDIRCP");         vLkDIRC     += fsIndex; gOutTree->Branch(vLkDIRC,    &outLkDIRC[pIndex]);
           TString vLeleDIRC("TkLeleDIRCP");        vLeleDIRC   += fsIndex; gOutTree->Branch(vLeleDIRC,  &outLeleDIRC[pIndex]);
-          TString vNumPhotonsDIRC("TkLpiDIRCP"); vNumPhotonsDIRC += fsIndex; gOutTree->Branch(vNumPhotonsDIRC,   &outNumPhotonsDIRC[pIndex]);
+          TString vNumPhotonsDIRC("TkNumPhotonsDIRCP"); vNumPhotonsDIRC += fsIndex; gOutTree->Branch(vNumPhotonsDIRC,   &outNumPhotonsDIRC[pIndex]);
           TString vXDIRC("TkXDIRCP"); vXDIRC+=fsIndex; gOutTree->Branch(vXDIRC, &outXDIRC[pIndex]);
           TString vYDIRC("TkYDIRCP"); vYDIRC+=fsIndex; gOutTree->Branch(vYDIRC, &outYDIRC[pIndex]);
           TString vThetaDIRC("TkThetaCDIRCP"); vThetaDIRC+=fsIndex; gOutTree->Branch(vThetaDIRC,&outThetaCDIRC[pIndex]);
